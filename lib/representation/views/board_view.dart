@@ -15,7 +15,6 @@ class _BoardViewState extends State<BoardView> {
 
   @override
   Widget build(BuildContext context) {
-
     return GridView.builder(
         itemCount: 64,
         gridDelegate:
@@ -33,10 +32,9 @@ class _BoardViewState extends State<BoardView> {
             square: square,
             onTap: () {
               setState(() {
-           
+                _chessboard.selectPiece(square: square, row: row, col: col);
+
               
-                    _chessboard.selectPiece(square: square, row: row, col: col);
-                
               });
             },
           );

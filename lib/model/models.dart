@@ -1,10 +1,16 @@
 import 'package:chess/representation/resources/assets_manager.dart';
+import 'package:chess/representation/resources/constants_manager.dart';
 
 class Chessboard {
   // Initialize the chessboard with squares
+
   Chessboard();
+
   late List<List<Square>> _squares;
+
   late Map<String, int?> _selectedPiece;
+  List<Move> _condidateMovesForCurrentSelectedPiece = [];
+
   String turn = 'white';
 
   factory Chessboard.instance() {
@@ -126,6 +132,77 @@ class Chessboard {
     bking.isWhite = true;
   }
 
+  String selectPiece(
+      {required Square square, required int row, required int col}) {
+    String status = 'nothing for now ';
+
+    if (checkTurn(square)) {
+      if ((_selectedPiece['currentRow'] == null &&
+          _selectedPiece['currentCol'] == null)) {
+        // Select taped square
+        if (square.piece.type != 'empty') {
+          square.isSelected = true;
+          _selectedPiece['currentRow'] = row;
+          _selectedPiece['currentCol'] = col;
+          status = 'selected';
+          unmarkCondiateMoves(_condidateMovesForCurrentSelectedPiece);
+          _condidateMovesForCurrentSelectedPiece =
+              calculateValidMoves(piece: square.piece, row: row, col: col);
+          markSquaresAsCondidateMove(_condidateMovesForCurrentSelectedPiece);
+          return status;
+        }
+      } else if ((_selectedPiece['nextRow'] == null &&
+          _selectedPiece['nextCol'] == null)) {
+        // Select another square even if it is the same one
+        _selectedPiece['nextRow'] = row;
+        _selectedPiece['nextCol'] = col;
+
+        status = 'a piece already selected checking ...';
+      }
+
+      if ((_selectedPiece['currentRow'] == _selectedPiece['nextRow'] &&
+          _selectedPiece['currentCol'] == _selectedPiece['nextCol'])) {
+        // User taped the same square So unselcet it
+
+        square.isSelected = false;
+        _selectedPiece['currentRow'] = null;
+        _selectedPiece['currentCol'] = null;
+        _selectedPiece['nextRow'] = null;
+        _selectedPiece['nextCol'] = null;
+        status = 'check ended Same piece typed twice :unselect';
+        unmarkCondiateMoves(_condidateMovesForCurrentSelectedPiece);
+      } else {
+        Square otherSquare = _squares[_selectedPiece['currentRow']!]
+            [_selectedPiece['currentCol']!];
+        if (otherSquare.piece.isWhite == square.piece.isWhite &&
+            square.piece.type != 'empty') {
+          otherSquare.isSelected = false;
+          square.isSelected = true;
+          _selectedPiece['currentRow'] = row;
+          _selectedPiece['currentCol'] = col;
+          _selectedPiece['nextRow'] = null;
+          _selectedPiece['nextCol'] = null;
+          status = 'Select an Other Piece';
+          unmarkCondiateMoves(_condidateMovesForCurrentSelectedPiece);
+          _condidateMovesForCurrentSelectedPiece =
+              calculateValidMoves(piece: square.piece, row: row, col: col);
+          markSquaresAsCondidateMove(_condidateMovesForCurrentSelectedPiece);
+        } else {
+          status = 'movePiece';
+          movePiece();
+          turn = turn == 'white' ? 'black' : 'white';
+          otherSquare.isSelected = false;
+          _selectedPiece['currentRow'] = null;
+          _selectedPiece['currentCol'] = null;
+          _selectedPiece['nextRow'] = null;
+          _selectedPiece['nextCol'] = null;
+          unmarkCondiateMoves(_condidateMovesForCurrentSelectedPiece);
+        }
+      }
+    }
+    return status;
+  }
+
   bool checkTurn(Square square) {
     bool ret;
     if (_selectedPiece['currentRow'] == null &&
@@ -150,96 +227,84 @@ class Chessboard {
     return ret;
   }
 
-  // Select a pice
-  @Deprecated("""
-selectedPiece() is being deprecated 
-""")
-  String selectPiece(
-      {required Square square, required int row, required int col}) {
-    String status = 'nothing for now ';
-
-    if (checkTurn(square)) {
-      if ((_selectedPiece['currentRow'] == null &&
-          _selectedPiece['currentCol'] == null)) {
-        // Select taped square
-        if (square.piece.type != 'empty') {
-          square.isSelected = true;
-          _selectedPiece['currentRow'] = row;
-          _selectedPiece['currentCol'] = col;
-          status = 'fresh piece';
-          return status;
-        }
-      } else if ((_selectedPiece['nextRow'] == null &&
-          _selectedPiece['nextCol'] == null)) {
-        // Select another square even if it is the same one
-        _selectedPiece['nextRow'] = row;
-        _selectedPiece['nextCol'] = col;
-
-        status = 'a piece already selected checking ...';
-      }
-
-      if ((_selectedPiece['currentRow'] == _selectedPiece['nextRow'] &&
-          _selectedPiece['currentCol'] == _selectedPiece['nextCol'])) {
-        // User taped the same square So unselcet it
-
-        square.isSelected = false;
-        _selectedPiece['currentRow'] = null;
-        _selectedPiece['currentCol'] = null;
-        _selectedPiece['nextRow'] = null;
-        _selectedPiece['nextCol'] = null;
-        status = 'check ended Same piece typed twice :unselect';
-      } else {
-        Square otherSquare = _squares[_selectedPiece['currentRow']!]
-            [_selectedPiece['currentCol']!];
-        if (otherSquare.piece.isWhite == square.piece.isWhite &&
-            square.piece.type != 'empty') {
-          otherSquare.isSelected = false;
-          square.isSelected = true;
-          _selectedPiece['currentRow'] = row;
-          _selectedPiece['currentCol'] = col;
-          _selectedPiece['nextRow'] = null;
-          _selectedPiece['nextCol'] = null;
-          status = 'Select an Other Piece';
-        } else {
-          status = 'movePiece';
-          movePiece();
-          turn = turn == 'white' ? 'black' : 'white';
-          otherSquare.isSelected = false;
-          _selectedPiece['currentRow'] = null;
-          _selectedPiece['currentCol'] = null;
-          _selectedPiece['nextRow'] = null;
-          _selectedPiece['nextCol'] = null;
-        }
-      }
-    }
-    return status;
-  }
-
-  List<Move>? calculateValidMoves(
+  List<Move> calculateValidMoves(
       {required Piece piece, required int row, required int col}) {
-    List<Move>? moves;
+    List<Move> moves = [];
+    int tr;
+    int tl;
+    // if pawn
     switch (piece.type) {
       case 'pawn':
-        if (piece.isWhite) {
-          // legal moves are constants
-          moves = [
-            Move(row: row - 1, col: col),
-            Move(row: row - 1, col: col - 1),
-            Move(row: row - 1, col: col + 1),
-          ];
-        } else {
-          moves = [
-            Move(row: row + 1, col: col),
-            Move(row: row + 1, col: col - 1),
-            Move(row: row + 1, col: col + 1),
-          ];
+        for (Move move in ConstantsManager.pawnMoves) {
+          tr = row + move.row;
+          tl = col + move.col;
+          if (isPositionIsInBoard(tr, tl)) {
+            if (!isPositionContainTeammate(piece, tr, tl)) {
+              moves.add(Move(row: tr, col: tl));
+            }
+          }
         }
-
         break;
-      default:
-    }
+      case 'knight':
+        for (Move move in ConstantsManager.nightMoves) {
+          tr = row + move.row;
+          tl = col + move.col;
+          if (isPositionIsInBoard(tr, tl)) {
+            if (!isPositionContainTeammate(piece, tr, tl)) {
+              moves.add(Move(row: tr, col: tl));
+            }
+          }
+        }
+        break;
+        //...
 
+      // if knight
+
+      // if bishop
+
+      //if rook
+
+      // if queen
+
+      // if king
+    }
+    for (var move in moves) {
+      print('move : ${move.row} : ${move.col}\n');
+    }
     return moves;
+  }
+
+  void markSquaresAsCondidateMove(List<Move> condidateMoves) {
+    for (Move move in condidateMoves) {
+      _squares[move.row][move.col].isSelected = true;
+    }
+  }
+
+  void unmarkCondiateMoves(List<Move> condidateMoves) {
+    for (Move move in condidateMoves) {
+      _squares[move.row][move.col].isSelected = false;
+    }
+  }
+
+  bool isPositionIsInBoard(int row, int col) {
+    //? checks if the given row and col are not outside the board
+    if (row < 8 && col < 8 && row >= 0 && col >= 0) {
+      return true;
+    }
+    return false;
+  }
+
+  bool isPositionContainTeammate(Piece piece, int row, int col) {
+    //? check if the postion containes a piece from the same team
+
+    Piece positionPiece = _squares[row][col].piece;
+    if (positionPiece.type == 'empty') {
+      return false;
+    } else if (piece.isWhite == positionPiece.isWhite) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   void movePiece() {
@@ -299,7 +364,7 @@ class Piece {
 }
 
 class Move {
-  Move({required this.row, required this.col});
+  const Move({required this.row, required this.col});
   final int row;
   final int col;
 }

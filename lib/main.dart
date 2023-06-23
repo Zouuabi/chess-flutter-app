@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:chess/representation/responsive_view.dart';
+const check = 52 ; 
 
 void main() {
   runApp(const MyApp());

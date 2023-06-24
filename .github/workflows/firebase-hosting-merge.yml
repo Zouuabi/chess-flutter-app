@@ -2,25 +2,19 @@
 # https://github.com/firebase/firebase-tools
 
 name: Deploy to Firebase Hosting on merge
-on: 
+'on': 'merge'
   push:
-    branches: [ main ]
-  
-  workflow_dispatch:
-
+    branches:
+      - main
 jobs:
-  build_and_preview:
-    if: '${{ github.event.pull_request.head.repo.full_name == github.repository }}'
+  build_and_deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
       - uses: actions/checkout@v3
-      - name: install dependencies
-      - run: npm ci
-      - name: build dependencies
-      - run: npm run build
+      - run: npm ci && npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_ZOUABI_ORG }}'
+          channelId: live
           projectId: zouabi-org

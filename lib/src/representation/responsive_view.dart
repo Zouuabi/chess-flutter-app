@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:chess/representation/resources/color_manager.dart';
-import 'package:chess/representation/resources/constants_manager.dart';
-import 'package:chess/representation/views/board_view.dart';
-import 'package:chess/representation/views/components.dart';
+import 'package:chess/src/representation/resources/color_manager.dart';
+import 'package:chess/src/representation/resources/constants_manager.dart';
+import 'package:chess/src/representation/views/board/view/board_view.dart';
+import 'package:chess/src/representation/views/board/view/components.dart';
 
 class ResponsiveView extends StatelessWidget {
   const ResponsiveView({
@@ -16,7 +16,7 @@ class ResponsiveView extends StatelessWidget {
       if (constraints.maxWidth > ConstantsManager.webScreenSize) {
         return const WebView();
       } else {
-        return const  MobileView();
+        return const MobileView();
       }
     });
   }

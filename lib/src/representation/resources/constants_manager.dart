@@ -1,7 +1,8 @@
 import '../../model/models.dart';
 
 class ConstantsManager {
-  static const webScreenSize = 600;
+  static const int webScreenSize = 600;
+  static const int boardLength = 64 ; 
   static const List<Move> pawnMoves = [
     Move(row: -1, col: 0),
     Move(row: -1, col: -1),

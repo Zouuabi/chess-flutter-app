@@ -1,14 +1,14 @@
-import 'package:chess/representation/resources/color_manager.dart';
+import 'package:chess/src/representation/resources/color_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../model/models.dart';
-import '../resources/assets_manager.dart';
+import '../../../../model/models.dart';
+import '../../../resources/assets_manager.dart';
 
 AppBar getAppBar() {
   return AppBar(
     elevation: 4,
-    backgroundColor: Colors.teal,
+    backgroundColor: AppColors.primaryColor,
     title: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
       SvgPicture.asset(
         ImageAssets.queen,
@@ -63,7 +63,6 @@ class SquareWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        
           decoration: BoxDecoration(color: _getSquareColor()),
           child: _getSquarechild()),
     );
@@ -81,7 +80,7 @@ class UserCard extends StatelessWidget {
     return const Row(
       children: [
         Card(
-          color: AppColors.lightPiecesColor,
+          color: AppColors.primaryColor,
           child: Icon(
             Icons.person,
             size: 60,
@@ -89,7 +88,10 @@ class UserCard extends StatelessWidget {
         ),
         Text(
           'openent',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.lightPiecesColor),
         )
       ],
     );

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:chess/representation/responsive_view.dart';
+import 'package:chess/src/representation/responsive_view.dart';
 
 
 void main() {

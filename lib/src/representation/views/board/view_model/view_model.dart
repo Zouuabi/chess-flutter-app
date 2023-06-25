@@ -1,120 +1,9 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../../model/models.dart';
-import '../../../resources/assets_manager.dart';
+
 import '../../../resources/constants_manager.dart';
-
-void intializeBoard(Chessboard chessBoard) {
-  chessBoard.squares = List<List<Square>>.generate(8, (row) {
-    return List<Square>.generate(8, (col) {
-      bool isLight = (row + col) % 2 == 0;
-      Square square = Square(row, col, isLight ? 'light' : 'dark');
-
-      return square;
-    });
-  });
-  chessBoard.selectedPiece = {
-    'currentRow': null,
-    'currentCol': null,
-    'nextRow': null,
-    'nextCol': null,
-  };
-
-  // initialize black pieces
-  for (int i = 0; i < 8; i++) {
-    Square currentSquare = chessBoard.squares[1][i];
-    currentSquare.piece.type = 'pawn';
-    currentSquare.piece.imagePath = ImageAssets.pawn;
-    currentSquare.piece.isWhite = false;
-  }
-
-  Piece rook1 = chessBoard.squares[0][0].piece;
-  rook1.type = 'rook';
-  rook1.imagePath = ImageAssets.rook;
-  rook1.isWhite = false;
-
-  Piece rook2 = chessBoard.squares[0][7].piece;
-  rook2.type = 'rook';
-  rook2.imagePath = ImageAssets.rook;
-  rook2.isWhite = false;
-
-  Piece knight1 = chessBoard.squares[0][1].piece;
-  knight1.type = 'knight';
-  knight1.imagePath = ImageAssets.knight;
-  knight1.isWhite = false;
-
-  Piece knight2 = chessBoard.squares[0][6].piece;
-  knight2.type = 'knight';
-  knight2.imagePath = ImageAssets.knight;
-  knight2.isWhite = false;
-
-  Piece bishop1 = chessBoard.squares[0][2].piece;
-  bishop1.type = 'bishop';
-  bishop1.imagePath = ImageAssets.bishop;
-  bishop1.isWhite = false;
-
-  Piece bishop2 = chessBoard.squares[0][5].piece;
-  bishop2.type = 'bishop';
-  bishop2.imagePath = ImageAssets.bishop;
-  bishop2.isWhite = false;
-
-  Piece queen = chessBoard.squares[0][3].piece;
-  queen.type = 'queen';
-  queen.imagePath = ImageAssets.queen;
-  queen.isWhite = false;
-
-  Piece king = chessBoard.squares[0][4].piece;
-  king.type = 'king';
-  king.imagePath = ImageAssets.king;
-  king.isWhite = false;
-
-  // intiialize white pieces
-  for (int i = 0; i < 8; i++) {
-    Square currentSquare = chessBoard.squares[6][i];
-    currentSquare.piece.type = 'pawn';
-    currentSquare.piece.imagePath = ImageAssets.pawn;
-    currentSquare.piece.isWhite = true;
-  }
-  Piece brook1 = chessBoard.squares[7][0].piece;
-  brook1.type = 'rook';
-  brook1.imagePath = ImageAssets.rook;
-  brook1.isWhite = true;
-
-  Piece brook2 = chessBoard.squares[7][7].piece;
-  brook2.type = 'rook';
-  brook2.imagePath = ImageAssets.rook;
-  brook2.isWhite = true;
-
-  Piece bknight1 = chessBoard.squares[7][1].piece;
-  bknight1.type = 'knight';
-  bknight1.imagePath = ImageAssets.knight;
-  bknight1.isWhite = true;
-
-  Piece bknight2 = chessBoard.squares[7][6].piece;
-  bknight2.type = 'knight';
-  bknight2.imagePath = ImageAssets.knight;
-  bknight2.isWhite = true;
-
-  Piece bbishop1 = chessBoard.squares[7][2].piece;
-  bbishop1.type = 'bishop';
-  bbishop1.imagePath = ImageAssets.bishop;
-  bbishop1.isWhite = true;
-
-  Piece bbishop2 = chessBoard.squares[7][5].piece;
-  bbishop2.type = 'bishop';
-  bbishop2.imagePath = ImageAssets.bishop;
-  bbishop2.isWhite = true;
-
-  Piece bqueen = chessBoard.squares[7][3].piece;
-  bqueen.type = 'queen';
-  bqueen.imagePath = ImageAssets.queen;
-  bqueen.isWhite = true;
-
-  Piece bking = chessBoard.squares[7][4].piece;
-  bking.type = 'king';
-  bking.imagePath = ImageAssets.king;
-  bking.isWhite = true;
-}
+import 'board_initializer.dart';
 
 class BoardViewModel with ChangeNotifier {
   late Chessboard chessboard;
@@ -123,7 +12,7 @@ class BoardViewModel with ChangeNotifier {
     chessboard = Chessboard(
       squares: [],
       selectedPiece: {},
-      condidateMovesForCurrentSelectedPiece: [],
+      valideMoves: [],
     );
     intializeBoard(chessboard);
   }
@@ -139,11 +28,10 @@ class BoardViewModel with ChangeNotifier {
           chessboard.selectedPiece['currentRow'] = row;
           chessboard.selectedPiece['currentCol'] = col;
 
-          unmarkCondiateMoves(chessboard.condidateMovesForCurrentSelectedPiece);
-          chessboard.condidateMovesForCurrentSelectedPiece =
+          unmarkCondiateMoves(chessboard.valideMoves);
+          chessboard.valideMoves =
               calculateValidMoves(piece: square.piece, row: row, col: col);
-          markSquaresAsCondidateMove(
-              chessboard.condidateMovesForCurrentSelectedPiece);
+          markSquaresAsCondidateMove(chessboard.valideMoves);
         }
       } else if ((chessboard.selectedPiece['nextRow'] == null &&
           chessboard.selectedPiece['nextCol'] == null)) {
@@ -164,7 +52,7 @@ class BoardViewModel with ChangeNotifier {
         chessboard.selectedPiece['nextRow'] = null;
         chessboard.selectedPiece['nextCol'] = null;
 
-        unmarkCondiateMoves(chessboard.condidateMovesForCurrentSelectedPiece);
+        unmarkCondiateMoves(chessboard.valideMoves);
       } else {
         Square otherSquare =
             chessboard.squares[chessboard.selectedPiece['currentRow']!]
@@ -178,24 +66,34 @@ class BoardViewModel with ChangeNotifier {
           chessboard.selectedPiece['nextRow'] = null;
           chessboard.selectedPiece['nextCol'] = null;
 
-          unmarkCondiateMoves(chessboard.condidateMovesForCurrentSelectedPiece);
-          chessboard.condidateMovesForCurrentSelectedPiece =
+          unmarkCondiateMoves(chessboard.valideMoves);
+          chessboard.valideMoves =
               calculateValidMoves(piece: square.piece, row: row, col: col);
-          markSquaresAsCondidateMove(
-              chessboard.condidateMovesForCurrentSelectedPiece);
+          markSquaresAsCondidateMove(chessboard.valideMoves);
         } else {
-          movePiece();
-          chessboard.turn = chessboard.turn == 'white' ? 'black' : 'white';
+          bool checker = false;
+          looping:
+          for (Move move in chessboard.valideMoves) {
+            if (move.row == chessboard.selectedPiece['nextRow'] &&
+                move.col == chessboard.selectedPiece['nextCol']) {
+              checker = true;
+              break looping;
+            }
+          }
+          if (checker) {
+            movePiece();
+            chessboard.turn = chessboard.turn == 'white' ? 'black' : 'white';
+          }
           otherSquare.isSelected = false;
           chessboard.selectedPiece['currentRow'] = null;
           chessboard.selectedPiece['currentCol'] = null;
           chessboard.selectedPiece['nextRow'] = null;
           chessboard.selectedPiece['nextCol'] = null;
-          unmarkCondiateMoves(chessboard.condidateMovesForCurrentSelectedPiece);
+          unmarkCondiateMoves(chessboard.valideMoves);
         }
       }
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   void markSquaresAsCondidateMove(List<Move> condidateMoves) {
@@ -223,9 +121,28 @@ class BoardViewModel with ChangeNotifier {
     chessboard.squares[row][col].piece = piece;
   }
 
-  // Remove the piece from the square
   void removePiece(Piece piece) {
     piece = Piece.empty();
+  }
+
+  bool checkAnalyzer() {
+    
+    for (int i = 0; i < 8; ++i) {
+      for (int j = 0; j < 8; ++j) {}
+    }
+
+    for (int i = 0; i < 8; ++i) {
+      for (int j = 0; j < 8; ++j) {
+        Square currentSquare = chessboard.squares[i][j];
+        if ((currentSquare.piece.isWhite && chessboard.turn == 'white') ||
+            (!currentSquare.piece.isWhite && chessboard.turn != 'white')) {
+          // ignore: unused_local_variable
+          List<Move> validemoves = calculateValidMoves(
+              piece: chessboard.squares[i][j].piece, row: i, col: j);
+        }
+      }
+    }
+    return true;
   }
 
   bool checkTurn(Square square) {
@@ -253,7 +170,7 @@ class BoardViewModel with ChangeNotifier {
     return ret;
   }
 
-  bool isPositionIsInBoard(int row, int col) {
+  bool isSquareOnBoard(int row, int col) {
     //? checks if the given row and col are not outside the board
     if (row < 8 && col < 8 && row >= 0 && col >= 0) {
       return true;
@@ -261,13 +178,28 @@ class BoardViewModel with ChangeNotifier {
     return false;
   }
 
-  bool isPositionContainTeammate(Piece piece, int row, int col) {
-    //? check if the postion containes a piece from the same team
-
-    Piece positionPiece = chessboard.squares[row][col].piece;
-    if (positionPiece.type == 'empty') {
+  bool isSquareEmpty(int row, int col) {
+    if (chessboard.squares[row][col].piece.type == 'empty') {
+      return true;
+    } else {
       return false;
-    } else if (piece.isWhite == positionPiece.isWhite) {
+    }
+  }
+
+  bool isTeammateHere(Piece piece, int row, int col) {
+    Piece positionPiece = chessboard.squares[row][col].piece;
+    if (piece.isWhite == positionPiece.isWhite &&
+        positionPiece.type != 'empty') {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool isEnemieHere(Piece piece, int row, int col) {
+    Piece positionPiece = chessboard.squares[row][col].piece;
+    if (piece.isWhite != positionPiece.isWhite &&
+        positionPiece.type != 'empty') {
       return true;
     } else {
       return false;
@@ -282,60 +214,148 @@ class BoardViewModel with ChangeNotifier {
     // if pawn
     switch (piece.type) {
       case 'pawn':
-        for (Move move in ConstantsManager.pawnMoves) {
-          tr = row + move.row;
-          tl = col + move.col;
-          if (isPositionIsInBoard(tr, tl)) {
-            if (!isPositionContainTeammate(piece, tr, tl)) {
-              // paww can one square diagnolly only if there is a piece to capture
-              if (chessboard.squares[tr][tl].piece.isWhite !=
-                  chessboard.squares[row][col].piece.isWhite) {
-                moves.add(Move(row: tr, col: tl));
-              }
-            }
+        // todo: en passant feature
+        int blackOrWhite = piece.isWhite ? -1 : 1;
+        List<Move> pawnmoves = [];
+        // move forward one step
+        pawnmoves.add(Move(row: row + blackOrWhite, col: col));
+        // move forward 2 steps if it is your first time
+        if ((piece.isWhite && row == 6) ||
+            (!piece.isWhite && row == 1) &&
+                isSquareEmpty(row + blackOrWhite, col)) {
+          pawnmoves.add(Move(row: row + 2 * blackOrWhite, col: col));
+        }
+        for (Move move in pawnmoves) {
+          if (isSquareOnBoard(move.row, move.col) &&
+              !isTeammateHere(piece, move.row, move.col) &&
+              !isEnemieHere(piece, move.row, move.col)) {
+            moves.add(move);
           }
         }
+        // move diagnolly if there is enemy to capture
+        tr = row + blackOrWhite;
+        tl = col - 1;
+        if (isSquareOnBoard(tr, tl)) {
+          if (isEnemieHere(piece, tr, tl)) {
+            moves.add(Move(row: tr, col: tl));
+          }
+        }
+        tl = col + 1;
+        if (isSquareOnBoard(tr, tl)) {
+          if (isEnemieHere(piece, tr, tl)) {
+            moves.add(Move(row: tr, col: tl));
+          }
+        }
+
         break;
       case 'knight':
         for (Move move in ConstantsManager.nightMoves) {
           tr = row + move.row;
           tl = col + move.col;
-          if (isPositionIsInBoard(tr, tl)) {
-            if (!isPositionContainTeammate(piece, tr, tl)) {
+          if (isSquareOnBoard(tr, tl)) {
+            if (isSquareEmpty(tr, tl) || isEnemieHere(piece, tr, tl)) {
               moves.add(Move(row: tr, col: tl));
             }
           }
         }
         break;
-      // case 'bishop':
-      //   for (var move in ConstantsManager.bishopMoves) {
-      //     tr = row;
-      //     tl = col;
-      //     theWhile:
-      //     while ((tr*-1)<8 &&(tl*-1)<8
-      //         ) {
-      //       tr += move.row;
-      //       tl += move.col;
-      //       if (isPositionIsInBoard(tr, tl)) {
-      //         if (!isPositionContainTeammate(piece, tr, tl)) {
-      //           moves.add(Move(row: tr, col: tl));
-      //         } else {
-      //           // there is a teamate blocking
-      //           break theWhile;
-      //         }
-      //       } else {
-      //         // on edge of the bord
-      //         break theWhile;
-      //       }
-      //       tr = row;
-      //       tl = col;
-      //     }
-      //   }
-      //   break;
-        
+      case 'bishop':
+        for (var move in ConstantsManager.bishopMoves) {
+          tr = row;
+          tl = col;
 
+          looping:
+          for (int i = 0; i < 8; i++) {
+            tr += move.row;
+            tl += move.col;
+            if (isSquareOnBoard(tr, tl)) {
+              if (isSquareEmpty(tr, tl)) {
+                moves.add(Move(row: tr, col: tl));
+              } else if (isEnemieHere(piece, tr, tl)) {
+                // place move as condidate move and stop looping
+                // squares after the enemie are not legal
+                moves.add(Move(row: tr, col: tl));
+                break looping;
+              } else {
+                // square contain teamate piece
+                // any square behind our piece is illegal to move on
+                break looping;
+              }
+            } else {
+              break looping; // there is no need to loop squares outside the board
+            }
+          }
+        }
+        break;
+      case 'rook':
+        for (var move in ConstantsManager.rookMoves) {
+          tr = row;
+          tl = col;
+
+          looping:
+          for (int i = 0; i < 8; i++) {
+            tr += move.row;
+            tl += move.col;
+            if (isSquareOnBoard(tr, tl)) {
+              if (isSquareEmpty(tr, tl)) {
+                moves.add(Move(row: tr, col: tl));
+              } else if (isEnemieHere(piece, tr, tl)) {
+                // place move as condidate move and stop looping
+                // squares after the enemie are not legal
+                moves.add(Move(row: tr, col: tl));
+                break looping;
+              } else {
+                // square contain teamate piece
+                // any square behind our piece is illegal to move on
+                break looping;
+              }
+            } else {
+              break looping; // there is no need to loop squares outside the board
+            }
+          }
+        }
+        break;
+      case 'queen':
+        for (var move in ConstantsManager.queenMoves) {
+          tr = row;
+          tl = col;
+
+          looping:
+          for (int i = 0; i < 8; i++) {
+            tr += move.row;
+            tl += move.col;
+            if (isSquareOnBoard(tr, tl)) {
+              if (isSquareEmpty(tr, tl)) {
+                moves.add(Move(row: tr, col: tl));
+              } else if (isEnemieHere(piece, tr, tl)) {
+                // place move as condidate move and stop looping
+                // squares after the enemie are not legal
+                moves.add(Move(row: tr, col: tl));
+                break looping;
+              } else {
+                // square contain teamate piece
+                // any square behind our piece is illegal to move on
+                break looping;
+              }
+            } else {
+              break looping; // there is no need to loop squares outside the board
+            }
+          }
+        }
+        break;
+      case 'king':
+        for (Move move in ConstantsManager.kingMoves) {
+          tr = row + move.row;
+          tl = col + move.col;
+          if (isSquareOnBoard(tr, tl)) {
+            if (isSquareEmpty(tr, tl) || isEnemieHere(piece, tr, tl)) {
+              moves.add(Move(row: tr, col: tl));
+            }
+          }
+        }
+        break;
     }
-        return moves;
+    return moves;
   }
 
   // get the information abut the selected piece in the format of a map

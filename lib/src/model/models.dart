@@ -1,16 +1,16 @@
 class Chessboard {
-  Chessboard(
-      {required this.squares,
-      required this.selectedPiece,
-      required this.condidateMovesForCurrentSelectedPiece,
-      this.turn = 'white'});
+  Chessboard({
+    required this.squares,
+    required this.selectedPiece,
+    required this.valideMoves,
+    this.turn = 'white',
+  });
 
   List<List<Square>> squares;
-
   Map<String, int?> selectedPiece;
-  List<Move> condidateMovesForCurrentSelectedPiece;
-
+  List<Move> valideMoves;
   String turn;
+  
 }
 
 class Square {
@@ -27,7 +27,6 @@ class Square {
   // Initialize a square with its position and an empty piece
 
   // Place a piece on the square
-  
 }
 
 class Piece {

@@ -38,7 +38,7 @@ class SquareWidget extends StatelessWidget {
   Color _getSquareColor() {
     Color color;
     if (square.isSelected) {
-      color = Colors.blue;
+      color = AppColors.selectionColor;
     } else if (square.color == 'light') {
       color = AppColors.secondaryColor;
     } else {
@@ -63,7 +63,8 @@ class SquareWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-          decoration: BoxDecoration(color: _getSquareColor()),
+          decoration: BoxDecoration(
+              color: _getSquareColor(), border: Border.all(width: 0.5)),
           child: _getSquarechild()),
     );
   }

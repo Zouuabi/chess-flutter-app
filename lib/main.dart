@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:chess/src/representation/responsive_view.dart';
+import 'src/representation/views/chess.dart';
+
+
 
 
 
@@ -14,21 +16,6 @@ import 'package:chess/src/representation/responsive_view.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  runApp(const Chess());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Chess ',
-        theme: ThemeData(
-          
-          useMaterial3: true,
-        ),
-        home: const ResponsiveView());
-  }
-}

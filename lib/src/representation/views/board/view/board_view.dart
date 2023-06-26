@@ -24,17 +24,18 @@ class BoardView extends StatelessWidget {
             int row = index ~/ 8;
             int col = index % 8;
 
-            Square square =
-                Provider.of<BoardViewModel>(context).getSquare(row, col);
-
-            return Consumer(builder: (ctx, _, __) {
-              return SquareWidget(
+            return Consumer<BoardViewModel>(
+              builder: (ctx, boardViewModel, _) {
+                Square square = boardViewModel.getSquare(row, col);
+                return SquareWidget(
                   square: square,
                   onTap: () {
-                    Provider.of<BoardViewModel>(context, listen: false)
-                        .selectPiece(square: square, row: row, col: col);
-                  });
-            });
+                    boardViewModel.selectPiece(
+                        square: square, row: row, col: col);
+                  },
+                );
+              },
+            );
           }
           //********************************************* */
 
